@@ -107,9 +107,6 @@ a {
 .seperator:hover {
   border-right: 4px solid #d3d3d3;
 }
-.css-h4y409-MuiList-root {
-  margin-top: 70px !important;
-}
 
 @media screen and (min-width: 600px) {
   .phonebox1 {

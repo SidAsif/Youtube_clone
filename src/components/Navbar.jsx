@@ -162,7 +162,7 @@ export default function Navbar({
             }}
           >
             <Divider />
-            <List>
+            <List sx={{ mt: 9 }}>
               {categories.map((category) => (
                 <ListItem
                   key={category.id}
