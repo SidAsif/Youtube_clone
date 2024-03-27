@@ -82,7 +82,8 @@ a {
     height: 45vh !important;
   }
   .search-bar {
-    width: 140px;
+    width: 125px;
+    height: 31px !important;
   }
   .logo {
     display: none !important;
@@ -107,7 +108,7 @@ a {
   border-right: 4px solid #d3d3d3;
 }
 .css-h4y409-MuiList-root {
-  margin-top: 60px !important;
+  margin-top: 70px !important;
 }
 
 @media screen and (min-width: 600px) {
