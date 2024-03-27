@@ -31,6 +31,7 @@ YouTube Clone is a project developed to replicate the core functionalities of Yo
 
 - **React.js:** Frontend JavaScript library for building user interfaces.
 - **RapidAPI:** Platform for accessing APIs and integrating external services.
+- **Material-UI:** React components library for designing user interfaces with a consistent look and feel.
 - **CSS:** Styling the user interface for a visually appealing experience.
 - **JavaScript:** Programming language for implementing interactive features.
 
