@@ -1,10 +1,10 @@
-import { Box, Stack, Typography } from "@mui/material";
+import { Avatar, Box, IconButton, Stack, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import ReactPlayer from "react-player";
 import { Link, useParams } from "react-router-dom";
 import { ApiFetch } from "../assets/ApiFetch";
 import Videos from "./Videos";
-import { CheckCircle } from "@mui/icons-material";
+import { CheckCircle, ExpandMore } from "@mui/icons-material";
 import Loader from "./Loader";
 import "../index.css";
 
@@ -12,14 +12,29 @@ export default function VideoDetail() {
   const [videoDetail, setVideoDetail] = useState(null);
   const [videos, setVideos] = useState(null);
   const { id } = useParams();
+  const [comments, setComments] = useState([]);
+  const [showAllComments, setShowAllComments] = useState(false);
+  const initialCommentsToShow = 10;
   useEffect(() => {
-    ApiFetch(`videos?part=snippet,statistics&id=${id}`).then((data) =>
-      setVideoDetail(data.items[0])
-    );
+    ApiFetch(`videos?part=snippet,statistics&id=${id}`).then((data) => {
+      setVideoDetail(data.items[0]);
+    });
     ApiFetch(`search?part=snippet&relatedToVideoId=${id}&type=video`).then(
       (data) => setVideos(data.items)
     );
+
+    ApiFetch(
+      `commentThreads?part=snippet&videoId=${id}&maxResults=${initialCommentsToShow}`
+    ).then((data) => {
+      setComments(data.items);
+    });
   }, [id]);
+  const handleSeeMoreComments = () => {
+    setShowAllComments(true);
+    ApiFetch(`commentThreads?part=snippet&videoId=${id}`).then((data) => {
+      setComments(data.items);
+    });
+  };
   if (!videoDetail?.snippet) return <Loader />;
   const {
     snippet: { title, channelId, channelTitle },
@@ -32,7 +47,7 @@ export default function VideoDetail() {
           <Box
             sx={{
               width: "100%",
-              height: "50%",
+              // height: "50%",
               position: "static",
               top: "86px",
               marginTop: "86px",
@@ -74,6 +89,50 @@ export default function VideoDetail() {
               </Stack>
             </Stack>
           </Box>
+          <Stack sx={{ mt: "10px" }}>
+            <Typography variant="h6">Comments</Typography>
+            <hr
+              style={{
+                border: "none",
+                borderBottom: "1px solid #ccc",
+                margin: "1rem 0",
+              }}
+            />
+            {comments
+              .slice(
+                0,
+                showAllComments ? comments.length : initialCommentsToShow
+              )
+              .map((comment) => (
+                <Box key={comment.id} display="flex" alignItems="center" mb={1}>
+                  <Avatar
+                    src={
+                      comment.snippet.topLevelComment.snippet
+                        .authorProfileImageUrl
+                    }
+                    alt="Avatar"
+                    sx={{ width: "25px", height: "25px", marginTop: "-20px" }}
+                  />
+                  <Box ml={1}>
+                    <Typography variant="subtitle1">
+                      {
+                        comment.snippet.topLevelComment.snippet
+                          .authorDisplayName
+                      }
+                    </Typography>
+                    <Typography sx={{ mb: "10px" }}>
+                      {comment.snippet.topLevelComment.snippet.textOriginal}
+                    </Typography>
+                  </Box>
+                </Box>
+              ))}
+            {!showAllComments && (
+              <IconButton onClick={handleSeeMoreComments}>
+                <ExpandMore />
+              </IconButton>
+            )}
+            <hr className="line" />
+          </Stack>
         </Box>
         <Box
           mt={10}
