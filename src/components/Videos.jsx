@@ -8,7 +8,7 @@ const Videos = ({ videos, drawerOpen, direction }) => {
       <Stack direction={direction || "row"} gap={2}>
         {[...Array(10)].map((_, idx) => (
           <Box key={idx} width="100%">
-            <Skeleton variant="rectangular" width={330} height={180} />
+            <Skeleton variant="rectangular" width={300} height={180} />
           </Box>
         ))}
       </Stack>
