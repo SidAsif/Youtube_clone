@@ -1,6 +1,5 @@
 import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
-
 import Box from "@mui/material/Box";
 import MuiDrawer from "@mui/material/Drawer";
 import MuiAppBar from "@mui/material/AppBar";
@@ -14,17 +13,23 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import { categories } from "../assets/material";
 import { Link } from "react-router-dom";
-import { Avatar, Badge } from "@mui/material";
+import { Avatar, Badge, Menu, MenuItem } from "@mui/material";
 import {
-  Menu,
+  MenuRounded,
   NotificationsNone,
   VideoCallOutlined,
+  WatchLater,
 } from "@mui/icons-material";
 import SearchBar from "./SearchBar";
 import "../index.css";
 import { useState } from "react";
+import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { auth } from "./firebaseConfig";
+import { signOut } from "firebase/auth";
 const drawerWidth = 240;
-
+const provider = new GoogleAuthProvider();
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 const openedMixin = (theme) => ({
   width: drawerWidth,
   transition: theme.transitions.create("width", {
@@ -87,11 +92,39 @@ export default function Navbar({
   showDrawer,
 }) {
   const [open, setOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [userAvatar, setUserAvatar] = useState(null);
   const navstyle = {
     backgroundColor: "#ffff",
   };
   const iconcolor = {
     color: "Black",
+  };
+  const handleGoogle = async () => {
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      if (user) {
+        if (user.photoURL) {
+          setUserAvatar(user.photoURL);
+        } else {
+          console.warn("User photo URL not available");
+        }
+        toast.success("Signed in successfully");
+      }
+    } catch (error) {
+      console.error(error.message);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      setUserAvatar(null);
+      toast.success("Signed out successfully");
+    } catch (error) {
+      console.error(error.message);
+    }
   };
 
   return (
@@ -109,7 +142,7 @@ export default function Navbar({
                 setOpen(!open);
               }}
             >
-              <Menu className="logo" />
+              <MenuRounded className="logo" />
             </IconButton>
             <Link
               to="/"
@@ -140,16 +173,37 @@ export default function Navbar({
                   <NotificationsNone />
                 </Badge>
               </IconButton>
+              <ToastContainer />
               <IconButton>
-                {" "}
                 <Avatar
                   alt="profile-logo"
-                  src="https://mui.com/static/images/avatar/2.jpg"
+                  src={
+                    userAvatar ||
+                    "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
+                  }
                   sx={{ width: 32, height: 32 }}
+                  onClick={(e) => setMenuOpen(true)}
                 />
               </IconButton>
             </Box>
           </Toolbar>
+          <Menu
+            id="demo-positioned-menu"
+            aria-labelledby="demo-positioned-button"
+            open={menuOpen}
+            onClose={(e) => setMenuOpen(false)}
+            anchorOrigin={{
+              vertical: "top",
+              horizontal: "right",
+            }}
+            transformOrigin={{
+              vertical: "top",
+              horizontal: "right",
+            }}
+          >
+            <MenuItem onClick={handleGoogle}>Sign In</MenuItem>
+            <MenuItem onClick={handleSignOut}>Logout</MenuItem>
+          </Menu>
         </AppBar>
         {showDrawer && (
           <Drawer
@@ -199,6 +253,27 @@ export default function Navbar({
                 </ListItem>
               ))}
             </List>
+            <IconButton
+              sx={{
+                minHeight: 48,
+                justifyContent: open ? "initial" : "center",
+                px: 2.5,
+                color: "black",
+              }}
+            >
+              <WatchLater
+                sx={{
+                  minWidth: 0,
+                  mr: open ? 3 : "auto",
+                  justifyContent: "center",
+                  marginRight: "15px",
+                  color: "black",
+                }}
+              />{" "}
+              <span style={{ fontSize: "14px", opacity: open ? 1 : 0 }}>
+                Watch Later
+              </span>
+            </IconButton>
             <Divider />
           </Drawer>
         )}

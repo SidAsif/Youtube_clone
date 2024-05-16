@@ -6,7 +6,7 @@ const API_KEY = "904837f8cbmshcdcead1204b5726p1152a3jsn4ed61785b3fe";
 
 const options = {
   params: {
-    maxResults: 50,
+    maxResults: 100,
   },
   headers: {
     "X-RapidAPI-Key": API_KEY,

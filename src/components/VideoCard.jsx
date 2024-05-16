@@ -45,19 +45,38 @@ export default function VideoCard({
           }}
         />
       </Link>
+
       <CardContent sx={{ backgroundColor: "white", height: "106px" }}>
         <Link to={videoId ? `/video/${videoId}` : demoVideoUrl}>
-          <Typography variant="subtitle1" fontWeight="bold" color="black">
-            {snippet?.title.slice(0, 60) || demoVideoTitle.slice(0, 60)}
-          </Typography>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <Typography variant="subtitle1" fontWeight="bold" color="black">
+              {snippet?.title.slice(0, 60) || demoVideoTitle.slice(0, 60)}
+            </Typography>
+          </div>
         </Link>
+
         <Link
           to={
             snippet?.channelId
               ? `/channel/${snippet?.channelId}`
               : demoChannelUrl
           }
+          style={{
+            textDecoration: "none",
+            display: "flex",
+            alignItems: "center",
+          }}
         >
+          <CardMedia
+            image={snippet?.thumbnails?.default?.url || demoChannelLogoUrl}
+            alt={snippet?.channelTitle}
+            sx={{
+              width: 22,
+              height: 22,
+              borderRadius: "50%",
+              marginRight: "10px",
+            }}
+          />
           <Typography variant="subtitle2" color="gray">
             {snippet?.channelTitle || demoChannelTitle}
             <CheckCircle sx={{ fontSize: "12px", color: "gray", ml: "5px" }} />
