@@ -1,35 +1,40 @@
-import { styled } from "@mui/material/styles";
+import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
-import Box from "@mui/material/Box";
-import MuiDrawer from "@mui/material/Drawer";
-import MuiAppBar from "@mui/material/AppBar";
-import Toolbar from "@mui/material/Toolbar";
-import List from "@mui/material/List";
-import Divider from "@mui/material/Divider";
-import IconButton from "@mui/material/IconButton";
-import ListItem from "@mui/material/ListItem";
-import ListItemButton from "@mui/material/ListItemButton";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import ListItemText from "@mui/material/ListItemText";
-import { categories } from "../assets/material";
-import { Link } from "react-router-dom";
-import { Avatar, Badge, Menu, MenuItem } from "@mui/material";
+import { styled } from "@mui/material/styles";
+import {
+  Box,
+  AppBar as MuiAppBar,
+  Toolbar,
+  IconButton,
+  Avatar,
+  Badge,
+  Menu,
+  MenuItem,
+  Drawer as MuiDrawer,
+  List,
+  Divider,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+} from "@mui/material";
 import {
   MenuRounded,
   NotificationsNone,
   VideoCallOutlined,
   WatchLater,
 } from "@mui/icons-material";
-import SearchBar from "./SearchBar";
-import "../index.css";
-import { useState } from "react";
-import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { auth } from "./firebaseConfig";
+import { Link } from "react-router-dom";
 import { signOut } from "firebase/auth";
-const drawerWidth = 240;
-const provider = new GoogleAuthProvider();
+import { auth } from "./firebaseConfig";
+import SearchBar from "./SearchBar";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { categories } from "../assets/material";
+import "../index.css";
+
+const drawerWidth = 240;
+
 const openedMixin = (theme) => ({
   width: drawerWidth,
   transition: theme.transitions.create("width", {
@@ -90,102 +95,127 @@ export default function Navbar({
   selectedCategory,
   setSelectedCategory,
   showDrawer,
+  user,
 }) {
   const [open, setOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [userAvatar, setUserAvatar] = useState(null);
+  const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 600);
+
   const navstyle = {
     backgroundColor: "#ffff",
   };
   const iconcolor = {
     color: "Black",
   };
-  const handleGoogle = async () => {
-    try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      if (user) {
-        if (user.photoURL) {
-          setUserAvatar(user.photoURL);
-        } else {
-          console.warn("User photo URL not available");
-        }
-        toast.success("Signed in successfully");
-      }
-    } catch (error) {
-      console.error(error.message);
-    }
-  };
 
   const handleSignOut = async () => {
     try {
       await signOut(auth);
-      setUserAvatar(null);
       toast.success("Signed out successfully");
     } catch (error) {
       console.error(error.message);
     }
   };
 
+  useEffect(() => {
+    const handleResize = () => {
+      setIsSmallScreen(window.innerWidth < 600);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
   return (
     <>
       <Box sx={{ display: "flex" }}>
         <AppBar position="fixed" sx={{ ...navstyle, boxShadow: "none" }}>
           <Toolbar>
-            <IconButton
-              size="large"
-              edge="start"
-              sx={{ mr: 2, ...iconcolor }}
-              className="logo"
-              aria-label="open drawer"
-              onClick={() => {
-                setOpen(!open);
-              }}
-            >
-              <MenuRounded className="logo" />
-            </IconButton>
-            <Link
-              to="/"
-              style={{ display: "flex", alignItems: "center", flexGrow: 0.5 }}
-            >
-              <img
-                src="/png-transparent-google-logo-youtube-youtuber-youtube-rewind-text-area-line-removebg-preview.png"
-                alt="logo"
-                height={45}
-              />
-            </Link>
-            <SearchBar />
-            <Box flexGrow={0.5} />
-
-            <Box
-              sx={{
-                display: { xs: "none", md: "flex", gap: 3 },
-                alignItems: "center",
-              }}
-              className="iconss"
-            >
-              <IconButton>
-                <VideoCallOutlined fontSize="large" />
-              </IconButton>
-              <IconButton>
-                {" "}
-                <Badge color="error" badgeContent={9} sx={{ ...iconcolor }}>
-                  <NotificationsNone />
-                </Badge>
-              </IconButton>
-              <ToastContainer />
-              <IconButton>
-                <Avatar
-                  alt="profile-logo"
-                  src={
-                    userAvatar ||
-                    "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
-                  }
-                  sx={{ width: 32, height: 32 }}
-                  onClick={(e) => setMenuOpen(true)}
-                />
-              </IconButton>
-            </Box>
+            {!isSmallScreen ? (
+              <>
+                <IconButton
+                  size="large"
+                  edge="start"
+                  sx={{ mr: 2, ...iconcolor }}
+                  className="logo"
+                  aria-label="open drawer"
+                  onClick={() => {
+                    setOpen(!open);
+                  }}
+                >
+                  <MenuRounded className="logo" />
+                </IconButton>
+                <Link
+                  to="/"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    flexGrow: 0.5,
+                  }}
+                >
+                  <img
+                    src="/png-transparent-google-logo-youtube-youtuber-youtube-rewind-text-area-line-removebg-preview.png"
+                    alt="logo"
+                    height={45}
+                  />
+                </Link>
+                <SearchBar />
+                <Box flexGrow={0.5} />
+                <Box
+                  sx={{
+                    display: { xs: "none", md: "flex", gap: 3 },
+                    alignItems: "center",
+                  }}
+                  className="iconss"
+                >
+                  <IconButton>
+                    <VideoCallOutlined fontSize="large" />
+                  </IconButton>
+                  <IconButton>
+                    <Badge color="error" badgeContent={9} sx={{ ...iconcolor }}>
+                      <NotificationsNone />
+                    </Badge>
+                  </IconButton>
+                  <ToastContainer />
+                  <IconButton>
+                    <Avatar
+                      alt="profile-logo"
+                      src={
+                        user?.photoURL ||
+                        "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
+                      }
+                      sx={{ width: 32, height: 32 }}
+                      onClick={(e) => setMenuOpen(true)}
+                    />
+                  </IconButton>
+                </Box>
+              </>
+            ) : (
+              <Box className="navbar-small">
+                <Link to="/">
+                  <img
+                    src="/png-transparent-google-logo-youtube-youtuber-youtube-rewind-text-area-line-removebg-preview.png"
+                    alt="logo"
+                    height={45}
+                  />
+                </Link>
+                <SearchBar />
+                <IconButton>
+                  <Avatar
+                    alt="profile-logo"
+                    src={
+                      user?.photoURL ||
+                      "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
+                    }
+                    sx={{ width: 32, height: 32 }}
+                    onClick={(e) => setMenuOpen(true)}
+                  />
+                </IconButton>
+              </Box>
+            )}
           </Toolbar>
           <Menu
             id="demo-positioned-menu"
@@ -201,8 +231,9 @@ export default function Navbar({
               horizontal: "right",
             }}
           >
-            <MenuItem onClick={handleGoogle}>Sign In</MenuItem>
             <MenuItem onClick={handleSignOut}>Logout</MenuItem>
+            <MenuItem>Help</MenuItem>
+            <MenuItem>Setting</MenuItem>
           </Menu>
         </AppBar>
         {showDrawer && (
@@ -281,8 +312,10 @@ export default function Navbar({
     </>
   );
 }
+
 Navbar.propTypes = {
   selectedCategory: PropTypes.string.isRequired,
   setSelectedCategory: PropTypes.func.isRequired,
   showDrawer: PropTypes.bool.isRequired,
+  user: PropTypes.object,
 };

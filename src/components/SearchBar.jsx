@@ -15,6 +15,7 @@ export default function SearchBar() {
   };
   return (
     <Paper
+      className="searchbox"
       component={"form"}
       onSubmit={handleSubmit}
       sx={{

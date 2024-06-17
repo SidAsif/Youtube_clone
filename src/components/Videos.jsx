@@ -14,9 +14,9 @@ const Videos = ({ videos, drawerOpen, direction, loading }) => {
       </Stack>
     );
   }
-  if (videos.length === 0) {
-    return <div>No videos found.</div>;
-  }
+  // if (videos.length === 0) {
+  //   return <div>No videos found.</div>;
+  // }
 
   return (
     <Stack

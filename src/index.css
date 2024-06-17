@@ -81,26 +81,35 @@ a {
   .react-player {
     height: 45vh !important;
   }
+
   .search-bar {
-    width: 125px;
-    height: 31px !important;
+    width: 80px;
+    height: 27px !important;
+  }
+  .searchbox {
+    height: 43px !important;
   }
   .logo {
-    display: none !important;
-  }
-  .iconss {
     display: none !important;
   }
 
   .drawer {
     display: none !important;
   }
+
   .videobox {
     margin-left: 8px !important;
   }
+
   .Detailvideo {
     margin-left: 12px !important;
     margin-right: 12px;
+  }
+
+  .navbar-small {
+    display: flex !important;
+    justify-content: space-between;
+    width: 100%;
   }
 }
 

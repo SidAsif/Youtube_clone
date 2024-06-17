@@ -8,8 +8,21 @@ import {
   Avatar,
 } from "@mui/material";
 import GoogleIcon from "@mui/icons-material/Google";
+import { signInWithPopup } from "firebase/auth";
+import { auth, googleProvider } from "./firebaseConfig"; // Adjust the path according to your project structure
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-const SignInCard = ({ onSignIn }) => {
+const SignInCard = () => {
+  const handleGoogleSignIn = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+      toast.success("Signed in successfully!");
+    } catch (error) {
+      toast.error(`Sign in failed: ${error.message}`);
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -18,27 +31,37 @@ const SignInCard = ({ onSignIn }) => {
         alignItems: "center",
         height: "100vh",
         backgroundColor: "#f5f5f5",
+        backgroundImage: "linear-gradient(135deg, #f5f5f5 25%, #e0e0e0 100%)",
       }}
     >
-      <Card sx={{ minWidth: 275, maxWidth: 400 }}>
+      <Card
+        sx={{
+          minWidth: 300,
+          maxWidth: 400,
+          p: 3,
+          borderRadius: 2,
+          boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.1)",
+          backgroundImage: "linear-gradient(135deg, #ffffff 25%, #fafafa 100%)",
+        }}
+      >
         <CardContent>
-          <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+          <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
             <Avatar
-              sx={{ width: 56, height: 56 }}
+              sx={{ width: 72, height: 72 }}
               src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
             />
           </Box>
           <Typography
             variant="h5"
             component="div"
-            sx={{ textAlign: "center", mb: 2 }}
+            sx={{ textAlign: "center", mb: 2, fontWeight: "bold" }}
           >
             Welcome!
           </Typography>
           <Typography
             variant="body2"
             color="text.secondary"
-            sx={{ textAlign: "center", mb: 2 }}
+            sx={{ textAlign: "center", mb: 3 }}
           >
             Please sign in to continue
           </Typography>
@@ -46,17 +69,21 @@ const SignInCard = ({ onSignIn }) => {
             variant="contained"
             fullWidth
             startIcon={<GoogleIcon />}
-            onClick={onSignIn}
             sx={{
               backgroundColor: "#4285F4",
               color: "#fff",
               "&:hover": { backgroundColor: "#357ae8" },
+              py: 1.5,
+              fontSize: "1rem",
+              textTransform: "none",
             }}
+            onClick={handleGoogleSignIn}
           >
             Sign in with Google
           </Button>
         </CardContent>
       </Card>
+      <ToastContainer />
     </Box>
   );
 };
