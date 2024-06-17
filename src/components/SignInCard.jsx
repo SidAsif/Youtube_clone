@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Box,
   Button,
@@ -9,7 +8,7 @@ import {
 } from "@mui/material";
 import GoogleIcon from "@mui/icons-material/Google";
 import { signInWithPopup } from "firebase/auth";
-import { auth, googleProvider } from "./firebaseConfig"; // Adjust the path according to your project structure
+import { auth, googleProvider } from "./firebaseConfig";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -22,7 +21,6 @@ const SignInCard = () => {
       toast.error(`Sign in failed: ${error.message}`);
     }
   };
-
   return (
     <Box
       sx={{
