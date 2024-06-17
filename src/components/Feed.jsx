@@ -1,41 +1,26 @@
 import { Box, Grid, Typography, CircularProgress } from "@mui/material";
 import Sidebar from "./Sidebar";
 import Videos from "./Videos";
-import { useEffect, useState, useCallback } from "react";
-import { ApiFetch } from "../assets/ApiFetch";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchVideos, resetVideos } from "../slices/videoSlice";
 import Navbar from "./Navbar";
 import "../index.css";
 
 export default function Feed() {
-  const [selectedCategory, setSelectedCategory] = useState("New");
-  const [videos, setVideos] = useState([]);
-  const [nextPageToken, setNextPageToken] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [open, setOpen] = useState(true);
-
-  const fetchVideos = useCallback(
-    async (pageToken = "") => {
-      setLoading(true);
-      try {
-        const params = `search?part=snippet&q=${selectedCategory}&pageToken=${pageToken}`;
-        const data = await ApiFetch(params);
-        setVideos((prevVideos) => [...prevVideos, ...data.items]);
-        setNextPageToken(data.nextPageToken);
-      } catch (error) {
-        console.error("Error fetching videos:", error);
-      } finally {
-        setLoading(false);
-        setInitialLoading(false);
-      }
-    },
-    [selectedCategory]
-  );
+  const dispatch = useDispatch();
+  const selectedCategory = useSelector((state) => state.category);
+  const {
+    items: videos,
+    nextPageToken,
+    loading,
+    initialLoading,
+  } = useSelector((state) => state.videos);
 
   useEffect(() => {
-    setVideos([]);
-    fetchVideos();
-  }, [selectedCategory, fetchVideos]);
+    dispatch(resetVideos());
+    dispatch(fetchVideos({ selectedCategory, pageToken: "" }));
+  }, [selectedCategory, dispatch]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -44,23 +29,17 @@ export default function Feed() {
           document.body.offsetHeight - 500 &&
         !loading
       ) {
-        fetchVideos(nextPageToken);
+        dispatch(fetchVideos({ selectedCategory, pageToken: nextPageToken }));
       }
     };
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [nextPageToken, loading, fetchVideos]);
+  }, [nextPageToken, loading, dispatch, selectedCategory]);
 
   return (
     <>
-      <Navbar
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-        showDrawer={true}
-        open={open}
-        setOpen={setOpen}
-      />
+      <Navbar showDrawer={true} />
 
       <Grid container>
         <Grid item xs={12} md={6} className="phonebox1">
@@ -74,10 +53,7 @@ export default function Feed() {
               px: { sx: 0, md: 2 },
             }}
           >
-            <Sidebar
-              selectedCategory={selectedCategory}
-              setSelectedCategory={setSelectedCategory}
-            />
+            <Sidebar selectedCategory={selectedCategory} />
           </Box>
         </Grid>
         <Grid item xs={12}>

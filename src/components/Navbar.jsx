@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
+import { useSelector, useDispatch } from "react-redux";
+import { clearUser } from "../slices/userSlice";
+import { setCategory } from "../slices/categorySlice";
 import { styled } from "@mui/material/styles";
 import {
   Box,
@@ -32,6 +35,8 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { categories } from "../assets/material";
 import "../index.css";
+
+// ... styles
 
 const drawerWidth = 240;
 
@@ -90,16 +95,13 @@ const Drawer = styled(MuiDrawer, {
     "& .MuiDrawer-paper": closedMixin(theme),
   }),
 }));
-
-export default function Navbar({
-  selectedCategory,
-  setSelectedCategory,
-  showDrawer,
-  user,
-}) {
+export default function Navbar({ showDrawer }) {
   const [open, setOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 600);
+  const selectedCategory = useSelector((state) => state.category);
+  const user = useSelector((state) => state.user);
+  const dispatch = useDispatch();
 
   const navstyle = {
     backgroundColor: "#ffff",
@@ -111,6 +113,7 @@ export default function Navbar({
   const handleSignOut = async () => {
     try {
       await signOut(auth);
+      dispatch(clearUser());
       toast.success("Signed out successfully");
     } catch (error) {
       console.error(error.message);
@@ -253,7 +256,7 @@ export default function Navbar({
                   key={category.id}
                   disablePadding
                   sx={{ display: "block" }}
-                  onClick={() => setSelectedCategory(category.name)}
+                  onClick={() => dispatch(setCategory(category.name))}
                 >
                   <ListItemButton
                     sx={{
@@ -314,8 +317,5 @@ export default function Navbar({
 }
 
 Navbar.propTypes = {
-  selectedCategory: PropTypes.string.isRequired,
-  setSelectedCategory: PropTypes.func.isRequired,
   showDrawer: PropTypes.bool.isRequired,
-  user: PropTypes.object,
 };
