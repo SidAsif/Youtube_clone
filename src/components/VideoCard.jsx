@@ -1,14 +1,16 @@
 import { CheckCircle } from "@mui/icons-material";
 import { Card, CardContent, CardMedia, Typography } from "@mui/material";
 import { Link } from "react-router-dom";
+import PropTypes from "prop-types";
+
 import {
   demoThumbnailUrl,
   demoVideoUrl,
   demoVideoTitle,
   demoChannelUrl,
   demoChannelTitle,
+  // demoChannelLogoUrl,
 } from "../assets/material";
-import PropTypes from "prop-types";
 
 export default function VideoCard({
   video: {
@@ -26,7 +28,6 @@ export default function VideoCard({
           sm: drawerOpen ? "358px" : "100%",
           md: drawerOpen ? "400px" : "330px",
         },
-
         boxShadow: "none",
       }}
     >
@@ -68,7 +69,7 @@ export default function VideoCard({
           }}
         >
           <CardMedia
-            image={snippet?.thumbnails?.default?.url || demoChannelLogoUrl}
+            image={snippet?.thumbnails?.default?.url}
             alt={snippet?.channelTitle}
             sx={{
               width: 22,
@@ -86,6 +87,7 @@ export default function VideoCard({
     </Card>
   );
 }
+
 VideoCard.propTypes = {
   video: PropTypes.shape({
     id: PropTypes.shape({

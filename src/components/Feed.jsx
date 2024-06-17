@@ -1,22 +1,56 @@
-import { Box, Grid, Typography } from "@mui/material";
+import { Box, Grid, Typography, CircularProgress } from "@mui/material";
 import Sidebar from "./Sidebar";
 import Videos from "./Videos";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { ApiFetch } from "../assets/ApiFetch";
 import Navbar from "./Navbar";
 import "../index.css";
 
 export default function Feed() {
   const [selectedCategory, setSelectedCategory] = useState("New");
-  const [videos, setVideos] = useState(null);
+  const [videos, setVideos] = useState([]);
+  const [nextPageToken, setNextPageToken] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [open, setOpen] = useState(true);
-  useEffect(() => {
-    setVideos(null);
 
-    ApiFetch(`search?part=snippet&q=${selectedCategory}`).then((data) =>
-      setVideos(data.items)
-    );
-  }, [selectedCategory]);
+  const fetchVideos = useCallback(
+    async (pageToken = "") => {
+      setLoading(true);
+      try {
+        const params = `search?part=snippet&q=${selectedCategory}&pageToken=${pageToken}`;
+        const data = await ApiFetch(params);
+        setVideos((prevVideos) => [...prevVideos, ...data.items]);
+        setNextPageToken(data.nextPageToken);
+      } catch (error) {
+        console.error("Error fetching videos:", error);
+      } finally {
+        setLoading(false);
+        setInitialLoading(false);
+      }
+    },
+    [selectedCategory]
+  );
+
+  useEffect(() => {
+    setVideos([]);
+    fetchVideos();
+  }, [selectedCategory, fetchVideos]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + window.scrollY >=
+          document.body.offsetHeight - 500 &&
+        !loading
+      ) {
+        fetchVideos(nextPageToken);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [nextPageToken, loading, fetchVideos]);
 
   return (
     <>
@@ -68,7 +102,17 @@ export default function Feed() {
               {selectedCategory}{" "}
               <span style={{ color: "#FC1503" }}>videos</span>
             </Typography>
-            <Videos videos={videos} />
+            <Videos videos={videos} direction="row" loading={loading} />
+            {initialLoading && (
+              <Box
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
+                height="100vh"
+              >
+                <CircularProgress />
+              </Box>
+            )}
           </Box>
         </Grid>
       </Grid>
