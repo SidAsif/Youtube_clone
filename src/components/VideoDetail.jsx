@@ -11,23 +11,28 @@ import {
   Snackbar,
   Stack,
   Typography,
+  FormControl,
+  Input,
+  InputAdornment,
+  Button,
 } from "@mui/material";
-import { useEffect, useState } from "react";
-import ReactPlayer from "react-player";
-import { Link, useParams } from "react-router-dom";
-import { ApiFetch } from "../assets/ApiFetch";
-import Videos from "./Videos";
 import {
+  AccountCircle,
   CheckCircle,
   ContentCopy,
   ExpandMore,
   MoreVert,
 } from "@mui/icons-material";
+import { useEffect, useState } from "react";
+import ReactPlayer from "react-player";
+import { Link, useParams } from "react-router-dom";
+import { ApiFetch } from "../assets/ApiFetch";
+import Videos from "./Videos";
 import Loader from "./Loader";
 import "../index.css";
-// import { app } from "./firebaseConfig";
-// import { getFirestore } from "firebase/firestore";
-// const firestore = getFirestore();
+import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
+import { firestore } from "./firebaseConfig";
+
 const style = {
   position: "absolute",
   top: "50%",
@@ -44,6 +49,7 @@ export default function VideoDetail() {
   const [videos, setVideos] = useState(null);
   const { id } = useParams();
   const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState("");
   const [showAllComments, setShowAllComments] = useState(false);
   const initialCommentsToShow = 10;
   const [threedotOpen, setThreedotOpen] = useState(false);
@@ -55,6 +61,7 @@ export default function VideoDetail() {
   const [toastOpen, setToastOpen] = useState(false);
 
   useEffect(() => {
+    // Fetch video details and related videos
     ApiFetch(`videos?part=snippet,statistics&id=${id}`).then((data) => {
       setVideoDetail(data.items[0]);
     });
@@ -62,17 +69,51 @@ export default function VideoDetail() {
       (data) => setVideos(data.items)
     );
 
+    // Fetch comments from YouTube API
     ApiFetch(
       `commentThreads?part=snippet&videoId=${id}&maxResults=${initialCommentsToShow}`
     ).then((data) => {
-      setComments(data.items);
+      const ytComments = data.items.map((item) => ({
+        id: item.id,
+        author: item.snippet.topLevelComment.snippet.authorDisplayName,
+        text: item.snippet.topLevelComment.snippet.textOriginal,
+        avatar: item.snippet.topLevelComment.snippet.authorProfileImageUrl,
+        timestamp: item.snippet.topLevelComment.snippet.publishedAt,
+        source: "youtube",
+      }));
+      setComments(ytComments);
     });
+
+    // Fetch comments from Firebase
+    const fetchFirebaseComments = async () => {
+      const q = query(
+        collection(firestore, "comments"),
+        where("videoId", "==", id)
+      );
+      const querySnapshot = await getDocs(q);
+      const fbComments = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        source: "firebase",
+      }));
+      setComments((prevComments) => [...prevComments, ...fbComments]);
+    };
+
+    fetchFirebaseComments();
   }, [id]);
 
   const handleSeeMoreComments = () => {
     setShowAllComments(true);
     ApiFetch(`commentThreads?part=snippet&videoId=${id}`).then((data) => {
-      setComments(data.items);
+      const ytComments = data.items.map((item) => ({
+        id: item.id,
+        author: item.snippet.topLevelComment.snippet.authorDisplayName,
+        text: item.snippet.topLevelComment.snippet.textOriginal,
+        avatar: item.snippet.topLevelComment.snippet.authorProfileImageUrl,
+        timestamp: item.snippet.topLevelComment.snippet.publishedAt,
+        source: "youtube",
+      }));
+      setComments((prevComments) => [...prevComments, ...ytComments]);
     });
   };
 
@@ -86,27 +127,37 @@ export default function VideoDetail() {
     }, 2000);
   };
 
+  const handleAddComment = async () => {
+    if (newComment.trim()) {
+      const newCommentData = {
+        id: Date.now().toString(), // Generate a unique ID (temporary)
+        author: "Anonymous", // Replace with actual user data if available
+        text: newComment,
+        avatar: "https://example.com/avatar.jpg", // Replace with actual avatar URL if available
+        timestamp: new Date(),
+        source: "firebase", // Assuming comments added through Firebase
+      };
+
+      // Add new comment to Firestore
+      await addDoc(collection(firestore, "comments"), {
+        videoId: id,
+        ...newCommentData,
+      });
+
+      // Update comments state to prepend new comment
+      setComments((prevComments) => [newCommentData, ...prevComments]);
+
+      // Clear input field
+      setNewComment("");
+    }
+  };
+
   if (!videoDetail?.snippet) return <Loader />;
   const {
     snippet: { title, channelId, channelTitle },
     statistics: { viewCount, likeCount },
   } = videoDetail;
-  // const handleWatchLater = () => {
-  //   // Add video ID to "Watch Later" list in Firebase
-  //   const watchLaterRef = firestore.collection("watchLater");
-  //   watchLaterRef
-  //     .add({
-  //       videoId: id,
-  //       // You can add more data like timestamp if needed
-  //       timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-  //     })
-  //     .then(() => {
-  //       console.log("Video added to Watch Later list");
-  //     })
-  //     .catch((error) => {
-  //       console.error("Error adding video to Watch Later list: ", error);
-  //     });
-  // };
+
   return (
     <Box minHeight="95vh">
       <Stack direction={{ xs: "column", md: "row" }}>
@@ -143,10 +194,7 @@ export default function VideoDetail() {
                 }}
               >
                 <CardMedia
-                  image={
-                    videoDetail?.snippet?.thumbnails?.default?.url ||
-                    demoChannelLogoUrl
-                  }
+                  image={videoDetail?.snippet?.thumbnails?.default?.url}
                   alt={videoDetail?.snippet?.channelTitle}
                   sx={{
                     width: 22,
@@ -155,7 +203,6 @@ export default function VideoDetail() {
                     marginRight: "10px",
                   }}
                 />
-
                 <Typography
                   variant={{ sm: "subtitle1", md: "h6" }}
                   color="black"
@@ -240,14 +287,38 @@ export default function VideoDetail() {
 
           <Stack sx={{ mt: "10px" }}>
             <Typography variant="h6">Comments</Typography>
-            <hr
-              style={{
-                border: "none",
-                borderBottom: "1px solid #ccc",
-                margin: "1rem 0",
-              }}
-            />
+            <FormControl variant="standard" fullWidth sx={{ mb: 2 }}>
+              <Input
+                id="input-with-icon-adornment"
+                startAdornment={
+                  <InputAdornment position="start">
+                    <AccountCircle />
+                  </InputAdornment>
+                }
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+              />
+            </FormControl>
+            <Box display="flex" justifyContent="flex-end">
+              <Button
+                variant="text"
+                onClick={() => setNewComment("")}
+                style={{ color: "black" }}
+                sx={{ mr: 2 }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleAddComment}
+              >
+                Comment
+              </Button>
+            </Box>
+
             {comments
+              .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
               .slice(
                 0,
                 showAllComments ? comments.length : initialCommentsToShow
@@ -255,26 +326,19 @@ export default function VideoDetail() {
               .map((comment) => (
                 <Box key={comment.id} display="flex" alignItems="center" mb={1}>
                   <Avatar
-                    src={
-                      comment.snippet.topLevelComment.snippet
-                        .authorProfileImageUrl
-                    }
+                    src={comment.avatar}
                     alt="Avatar"
                     sx={{ width: "25px", height: "25px", marginTop: "-20px" }}
                   />
                   <Box ml={1}>
                     <Typography variant="subtitle1">
-                      {
-                        comment.snippet.topLevelComment.snippet
-                          .authorDisplayName
-                      }
+                      {comment.author}
                     </Typography>
-                    <Typography sx={{ mb: "10px" }}>
-                      {comment.snippet.topLevelComment.snippet.textOriginal}
-                    </Typography>
+                    <Typography sx={{ mb: "10px" }}>{comment.text}</Typography>
                   </Box>
                 </Box>
               ))}
+
             {!showAllComments && (
               <IconButton onClick={handleSeeMoreComments}>
                 <ExpandMore />
