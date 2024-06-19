@@ -14,7 +14,7 @@ import "./App.css";
 function App() {
   const [openDrawer, setOpenDrawer] = useState(true);
   const [user, setUser] = useState(null);
-
+  const [notifications, setNotifications] = useState([]);
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -34,10 +34,18 @@ function App() {
   return (
     <BrowserRouter>
       <Box>
-        <Navbar setOpenDrawer={setOpenDrawer} open={openDrawer} user={user} />
+        <Navbar
+          setOpenDrawer={setOpenDrawer}
+          open={openDrawer}
+          user={user}
+          notifications={notifications}
+        />
         <Routes>
           <Route path="/" element={<Feed openDrawer={openDrawer} />} />
-          <Route path="/video/:id" element={<VideoDetail />} />
+          <Route
+            path="/video/:id"
+            element={<VideoDetail setNotifications={setNotifications} />}
+          />
           <Route path="/channel/:id" element={<ChannelDetail />} />
           <Route path="/search/:searchTerm" element={<SearchFeed />} />
         </Routes>

@@ -53,7 +53,7 @@ export default function SearchFeed() {
           <CircularProgress />
         </Box>
       ) : (
-        <Videos videos={videos} drawerOpen={open} />
+        <Videos videos={videos} />
       )}
     </Box>
   );

@@ -50,7 +50,7 @@ const style = {
   p: 4,
 };
 
-export default function VideoDetail() {
+export default function VideoDetail({ setNotifications }) {
   const [videoDetail, setVideoDetail] = useState(null);
   const [videos, setVideos] = useState(null);
   const { id } = useParams();
@@ -142,12 +142,12 @@ export default function VideoDetail() {
   const handleAddComment = async () => {
     if (newComment.trim()) {
       const newCommentData = {
-        id: Date.now().toString(), // Generate a unique ID (temporary)
-        author: user ? user.displayName : "Anonymous", // Use user's Google name if signed in
+        id: Date.now().toString(),
+        author: user ? user.displayName : "Anonymous",
         text: newComment,
         avatar: user ? user.photoURL : "https://example.com/avatar.jpg", // Use user's Google avatar if signed in
         timestamp: new Date(),
-        source: "firebase", // Assuming comments added through Firebase
+        source: "firebase",
       };
 
       // Add new comment to Firestore
@@ -158,9 +158,12 @@ export default function VideoDetail() {
 
       // Update comments state to prepend new comment
       setComments((prevComments) => [newCommentData, ...prevComments]);
-
       // Clear input field
       setNewComment("");
+      setNotifications((prevNotifications) => [
+        ...prevNotifications,
+        newCommentData,
+      ]);
     }
   };
 
@@ -304,7 +307,6 @@ export default function VideoDetail() {
               </Stack>
             </Stack>
           </Box>
-
           <Stack sx={{ mt: "10px" }}>
             <Typography variant="h6">Comments</Typography>
             {user ? (
@@ -318,13 +320,14 @@ export default function VideoDetail() {
                       </InputAdornment>
                     }
                     value={newComment}
+                    placeholder="Add a comment..."
                     onChange={(e) => setNewComment(e.target.value)}
                   />
                 </FormControl>
                 <Box display="flex" justifyContent="flex-end">
                   <Button
                     variant="text"
-                    onClick={() => setNewComment("")}
+                    onClick={() => setNewComment(e.target.value)}
                     style={{ color: "black" }}
                     sx={{ mr: 2 }}
                   >

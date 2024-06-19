@@ -95,7 +95,7 @@ const Drawer = styled(MuiDrawer, {
     "& .MuiDrawer-paper": closedMixin(theme),
   }),
 }));
-export default function Navbar({ showDrawer }) {
+export default function Navbar({ showDrawer, notifications = [] }) {
   const [open, setOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 600);
@@ -178,7 +178,11 @@ export default function Navbar({ showDrawer }) {
                     <VideoCallOutlined fontSize="large" />
                   </IconButton>
                   <IconButton>
-                    <Badge color="error" badgeContent={9} sx={{ ...iconcolor }}>
+                    <Badge
+                      color="error"
+                      badgeContent={notifications.length}
+                      sx={{ ...iconcolor }}
+                    >
                       <NotificationsNone />
                     </Badge>
                   </IconButton>
