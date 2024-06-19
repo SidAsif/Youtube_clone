@@ -31,7 +31,13 @@ import Videos from "./Videos";
 import Loader from "./Loader";
 import "../index.css";
 import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
-import { firestore } from "./firebaseConfig";
+import {
+  auth,
+  googleProvider,
+  signInWithPopup,
+  onAuthStateChanged,
+  firestore,
+} from "./firebaseConfig";
 
 const style = {
   position: "absolute",
@@ -59,6 +65,7 @@ export default function VideoDetail() {
   const handleClose = () => setOpen(false);
   const [copied, setCopied] = useState(false);
   const [toastOpen, setToastOpen] = useState(false);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     // Fetch video details and related videos
@@ -100,6 +107,11 @@ export default function VideoDetail() {
     };
 
     fetchFirebaseComments();
+
+    // Handle auth state changes
+    onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
   }, [id]);
 
   const handleSeeMoreComments = () => {
@@ -131,9 +143,9 @@ export default function VideoDetail() {
     if (newComment.trim()) {
       const newCommentData = {
         id: Date.now().toString(), // Generate a unique ID (temporary)
-        author: "Anonymous", // Replace with actual user data if available
+        author: user ? user.displayName : "Anonymous", // Use user's Google name if signed in
         text: newComment,
-        avatar: "https://example.com/avatar.jpg", // Replace with actual avatar URL if available
+        avatar: user ? user.photoURL : "https://example.com/avatar.jpg", // Use user's Google avatar if signed in
         timestamp: new Date(),
         source: "firebase", // Assuming comments added through Firebase
       };
@@ -149,6 +161,14 @@ export default function VideoDetail() {
 
       // Clear input field
       setNewComment("");
+    }
+  };
+
+  const handleSignIn = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (error) {
+      console.error("Error signing in with Google", error);
     }
   };
 
@@ -287,35 +307,43 @@ export default function VideoDetail() {
 
           <Stack sx={{ mt: "10px" }}>
             <Typography variant="h6">Comments</Typography>
-            <FormControl variant="standard" fullWidth sx={{ mb: 2 }}>
-              <Input
-                id="input-with-icon-adornment"
-                startAdornment={
-                  <InputAdornment position="start">
-                    <AccountCircle />
-                  </InputAdornment>
-                }
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-              />
-            </FormControl>
-            <Box display="flex" justifyContent="flex-end">
-              <Button
-                variant="text"
-                onClick={() => setNewComment("")}
-                style={{ color: "black" }}
-                sx={{ mr: 2 }}
-              >
-                Cancel
+            {user ? (
+              <>
+                <FormControl variant="standard" fullWidth sx={{ mb: 2 }}>
+                  <Input
+                    id="input-with-icon-adornment"
+                    startAdornment={
+                      <InputAdornment position="start">
+                        <Avatar src={user.photoURL} />
+                      </InputAdornment>
+                    }
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                  />
+                </FormControl>
+                <Box display="flex" justifyContent="flex-end">
+                  <Button
+                    variant="text"
+                    onClick={() => setNewComment("")}
+                    style={{ color: "black" }}
+                    sx={{ mr: 2 }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleAddComment}
+                  >
+                    Comment
+                  </Button>
+                </Box>
+              </>
+            ) : (
+              <Button variant="contained" onClick={handleSignIn}>
+                Sign in to Comment
               </Button>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleAddComment}
-              >
-                Comment
-              </Button>
-            </Box>
+            )}
 
             {comments
               .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
