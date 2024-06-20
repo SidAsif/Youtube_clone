@@ -15,6 +15,7 @@ import {
   Input,
   InputAdornment,
   Button,
+  TextField,
 } from "@mui/material";
 import {
   AccountCircle,
@@ -22,6 +23,10 @@ import {
   ContentCopy,
   ExpandMore,
   MoreVert,
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+  Save as SaveIcon,
+  Cancel as CancelIcon,
 } from "@mui/icons-material";
 import { useEffect, useState } from "react";
 import ReactPlayer from "react-player";
@@ -30,7 +35,17 @@ import { ApiFetch } from "../assets/ApiFetch";
 import Videos from "./Videos";
 import Loader from "./Loader";
 import "../index.css";
-import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  where,
+  deleteDoc,
+  doc,
+  updateDoc,
+  getDoc,
+} from "firebase/firestore";
 import {
   auth,
   googleProvider,
@@ -66,7 +81,8 @@ export default function VideoDetail({ setNotifications }) {
   const [copied, setCopied] = useState(false);
   const [toastOpen, setToastOpen] = useState(false);
   const [user, setUser] = useState(null);
-
+  const [editMode, setEditMode] = useState(null);
+  const [editedComment, setEditedComment] = useState("");
   useEffect(() => {
     // Fetch video details and related videos
     ApiFetch(`videos?part=snippet,statistics&id=${id}`).then((data) => {
@@ -148,6 +164,7 @@ export default function VideoDetail({ setNotifications }) {
         avatar: user ? user.photoURL : "https://example.com/avatar.jpg", // Use user's Google avatar if signed in
         timestamp: new Date(),
         source: "firebase",
+        userId: user ? user.uid : null, // Include the userId field
       };
 
       // Add new comment to Firestore
@@ -173,6 +190,76 @@ export default function VideoDetail({ setNotifications }) {
     } catch (error) {
       console.error("Error signing in with Google", error);
     }
+  };
+  const handleDeleteComment = async (commentId) => {
+    try {
+      // Delete comment from Firestore
+      await deleteDoc(doc(firestore, "comments", commentId));
+      // Update comments state to remove deleted comment
+      setComments((prevComments) =>
+        prevComments.filter((comment) => comment.id !== commentId)
+      );
+    } catch (error) {
+      console.error("Error deleting comment", error);
+    }
+  };
+  const handleEditComment = (commentId, currentText) => {
+    setEditMode(commentId);
+    setEditedComment(currentText);
+  };
+  const handleSaveEditedComment = async (commentId) => {
+    try {
+      if (!editedComment.trim()) {
+        console.log("Edited comment is empty. Not saving.");
+        return;
+      }
+
+      console.log(`Saving edited comment for ID: ${commentId}`);
+
+      const commentRef = doc(firestore, "comments", commentId);
+      const commentSnapshot = await getDoc(commentRef);
+
+      if (commentSnapshot.exists()) {
+        const commentData = commentSnapshot.data();
+
+        console.log("Current user ID:", user.uid);
+        console.log("Comment user ID:", commentData.userId);
+
+        if (commentData.userId !== user.uid) {
+          console.log("User is not authorized to edit this comment.");
+          return;
+        }
+
+        // Update comment in Firestore
+        await updateDoc(commentRef, {
+          text: editedComment,
+          timestamp: new Date(),
+        });
+
+        // Update comments state to reflect the edited comment
+        setComments((prevComments) =>
+          prevComments.map((comment) =>
+            comment.id === commentId
+              ? { ...comment, text: editedComment, timestamp: new Date() }
+              : comment
+          )
+        );
+
+        // Exit edit mode
+        setEditMode(null);
+        setEditedComment("");
+        console.log("Comment saved successfully.");
+      } else {
+        console.log("Comment does not exist.");
+      }
+    } catch (error) {
+      console.error("Error editing comment", error);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditMode(null);
+    setEditedComment("");
   };
 
   if (!videoDetail?.snippet) return <Loader />;
@@ -361,12 +448,51 @@ export default function VideoDetail({ setNotifications }) {
                     alt="Avatar"
                     sx={{ width: "25px", height: "25px", marginTop: "-20px" }}
                   />
-                  <Box ml={1}>
-                    <Typography variant="subtitle1">
-                      {comment.author}
-                    </Typography>
-                    <Typography sx={{ mb: "10px" }}>{comment.text}</Typography>
+                  <Box ml={1} flex={1}>
+                    {editMode === comment.id ? (
+                      <Box display="flex" alignItems="center">
+                        <TextField
+                          fullWidth
+                          value={editedComment}
+                          onChange={(e) => setEditedComment(e.target.value)}
+                          sx={{ mr: 1 }}
+                        />
+                        <IconButton
+                          onClick={() => handleSaveEditedComment(comment.id)}
+                        >
+                          <SaveIcon />
+                        </IconButton>
+                        <IconButton onClick={handleCancelEdit}>
+                          <CancelIcon />
+                        </IconButton>
+                      </Box>
+                    ) : (
+                      <>
+                        <Typography variant="subtitle1">
+                          {comment.author}
+                        </Typography>
+                        <Typography sx={{ mb: "10px" }}>
+                          {comment.text}
+                        </Typography>
+                      </>
+                    )}
                   </Box>
+                  {user && user.displayName === comment.author && (
+                    <>
+                      <IconButton
+                        onClick={() =>
+                          handleEditComment(comment.id, comment.text)
+                        }
+                      >
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton
+                        onClick={() => handleDeleteComment(comment.id)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </>
+                  )}
                 </Box>
               ))}
 

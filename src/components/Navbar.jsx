@@ -20,6 +20,7 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Typography,
 } from "@mui/material";
 import {
   MenuRounded,
@@ -95,6 +96,7 @@ const Drawer = styled(MuiDrawer, {
     "& .MuiDrawer-paper": closedMixin(theme),
   }),
 }));
+
 export default function Navbar({ showDrawer, notifications = [] }) {
   const [open, setOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -238,6 +240,19 @@ export default function Navbar({ showDrawer, notifications = [] }) {
               horizontal: "right",
             }}
           >
+            <MenuItem>
+              <Box sx={{ display: "flex", alignItems: "center" }}>
+                <Avatar
+                  alt="profile-logo"
+                  src={
+                    user?.photoURL ||
+                    "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
+                  }
+                  sx={{ width: 32, height: 32, marginRight: 2 }}
+                />
+                <Typography variant="body1">{user.displayName}</Typography>
+              </Box>
+            </MenuItem>
             <MenuItem onClick={handleSignOut}>Logout</MenuItem>
             <MenuItem>Help</MenuItem>
             <MenuItem>Setting</MenuItem>

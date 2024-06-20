@@ -11,16 +11,32 @@ import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "./firebaseConfig";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useDispatch } from "react-redux";
+import { setUser } from "../slices/userSlice";
 
 const SignInCard = () => {
+  const dispatch = useDispatch();
+
   const handleGoogleSignIn = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+
+      dispatch(
+        setUser({
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          email: user.email,
+          uid: user.uid,
+        })
+      );
+
       toast.success("Signed in successfully!");
     } catch (error) {
       toast.error(`Sign in failed: ${error.message}`);
     }
   };
+
   return (
     <Box
       sx={{
