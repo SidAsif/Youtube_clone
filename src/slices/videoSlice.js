@@ -1,12 +1,16 @@
-// slices/videoSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { ApiFetch } from "../assets/ApiFetch";
 
 export const fetchVideos = createAsyncThunk(
   "videos/fetchVideos",
   async ({ selectedCategory, pageToken }) => {
-    const params = `search?part=snippet&q=${selectedCategory}&pageToken=${pageToken}`;
-    const data = await ApiFetch(params);
+    const params = {
+      part: "snippet",
+      q: selectedCategory,
+      pageToken: pageToken,
+      order: "date",
+    };
+    const data = await ApiFetch("search", params);
     return data;
   }
 );
