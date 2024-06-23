@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { useSelector, useDispatch } from "react-redux";
-import { clearUser } from "../slices/userSlice";
+import { clearUser, setUser } from "../slices/userSlice";
 import { setCategory } from "../slices/categorySlice";
 import { setDarkMode } from "../slices/darkModeSlice";
 import { styled } from "@mui/material/styles";
@@ -116,6 +116,13 @@ export default function Navbar({ showDrawer, notifications = [] }) {
   const isDarkMode = useSelector((state) => state.darkMode.value);
   const dispatch = useDispatch();
 
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      dispatch(setUser(JSON.parse(storedUser)));
+    }
+  }, [dispatch]);
+
   const handleToggleDarkMode = (event) => {
     dispatch(setDarkMode(event.target.checked));
   };
@@ -130,6 +137,7 @@ export default function Navbar({ showDrawer, notifications = [] }) {
   const handleSignOut = async () => {
     try {
       await signOut(auth);
+      localStorage.removeItem("user");
       dispatch(clearUser());
       toast.success("Signed out successfully");
     } catch (error) {

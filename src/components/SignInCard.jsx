@@ -21,7 +21,14 @@ const SignInCard = () => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
-
+      // Save user data to local storage
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+        })
+      );
       dispatch(
         setUser({
           displayName: user.displayName,

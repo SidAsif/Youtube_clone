@@ -294,7 +294,10 @@ export default function VideoDetail({ setNotifications }) {
                 bgcolor: darkMode ? "#333" : "background.paper",
                 color: darkMode ? "#fff" : "black",
                 transition: "background-color 0.3s, color 0.3s",
-                padding: 2,
+                padding: {
+                  xs: 0,
+                  md: 2,
+                },
               }}
             >
               <ReactPlayer
