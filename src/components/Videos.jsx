@@ -1,8 +1,17 @@
+import React from "react";
+import { useSelector } from "react-redux";
 import { Stack, Box, Skeleton } from "@mui/material";
 import PropTypes from "prop-types";
 import VideoCard from "./VideoCard";
 
 const Videos = ({ videos, drawerOpen, direction, loading }) => {
+  const isDarkMode = useSelector((state) => state.darkMode.value);
+
+  const boxStyle = {
+    backgroundColor: isDarkMode ? "#333" : "#fff",
+    color: isDarkMode ? "#fff" : "#000",
+  };
+
   if (videos === null || videos === undefined) {
     return (
       <Stack direction={direction || "row"} gap={2}>
@@ -14,9 +23,6 @@ const Videos = ({ videos, drawerOpen, direction, loading }) => {
       </Stack>
     );
   }
-  // if (videos.length === 0) {
-  //   return <div>No videos found.</div>;
-  // }
 
   return (
     <Stack
@@ -25,13 +31,14 @@ const Videos = ({ videos, drawerOpen, direction, loading }) => {
       justifyContent="start"
       alignItems="start"
       gap={2}
+      sx={boxStyle}
     >
       {videos.map((item, idx) => (
         <Box key={idx}>{item.id.videoId && <VideoCard video={item} />}</Box>
       ))}
       {loading &&
         [...Array(4)].map((_, idx) => (
-          <Box key={idx} width="100%">
+          <Box key={idx}>
             <Skeleton variant="rectangular" width={300} height={180} />
             <Skeleton width="60%" />
             <Skeleton width="40%" />

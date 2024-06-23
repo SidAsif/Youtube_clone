@@ -1,7 +1,9 @@
-import { CheckCircle } from "@mui/icons-material";
+import React from "react";
+import { useSelector } from "react-redux";
 import { Card, CardContent, CardMedia, Typography } from "@mui/material";
 import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
+import { CheckCircle } from "@mui/icons-material";
 
 import {
   demoThumbnailUrl,
@@ -9,28 +11,38 @@ import {
   demoVideoTitle,
   demoChannelUrl,
   demoChannelTitle,
-  // demoChannelLogoUrl,
 } from "../assets/material";
 
-export default function VideoCard({
+const VideoCard = ({
   video: {
     id: { videoId },
     snippet,
   },
   drawerOpen,
-}) {
+}) => {
+  const isDarkMode = useSelector((state) => state.darkMode.value);
+
+  const cardStyle = {
+    ml: { md: 1 },
+    width: {
+      xs: "100%",
+      sm: drawerOpen ? "358px" : "100%",
+      md: drawerOpen ? "400px" : "330px",
+    },
+    boxShadow: "none",
+    bgcolor: isDarkMode ? "#333" : "white",
+    color: isDarkMode ? "#fff" : "black",
+  };
+
+  const hoverStyle = {
+    borderRadius: "12px",
+    "&:hover": {
+      borderRadius: "0",
+    },
+  };
+
   return (
-    <Card
-      sx={{
-        ml: { md: 1 },
-        width: {
-          xs: "100%",
-          sm: drawerOpen ? "358px" : "100%",
-          md: drawerOpen ? "400px" : "330px",
-        },
-        boxShadow: "none",
-      }}
-    >
+    <Card sx={cardStyle}>
       <Link to={videoId ? `/video/${videoId}` : `/video/cV2gBU6hKfY`}>
         <CardMedia
           image={snippet?.thumbnails?.high?.url || demoThumbnailUrl}
@@ -39,21 +51,19 @@ export default function VideoCard({
             width: "100%",
             height: 180,
             objectFit: "cover",
-            borderRadius: "12px",
-            "&:hover": {
-              borderRadius: 0,
-            },
+            ...hoverStyle,
           }}
         />
       </Link>
 
-      <CardContent sx={{ backgroundColor: "white", height: "106px" }}>
-        <Link to={videoId ? `/video/${videoId}` : demoVideoUrl}>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <Typography variant="subtitle1" fontWeight="bold" color="black">
-              {snippet?.title.slice(0, 60) || demoVideoTitle.slice(0, 60)}
-            </Typography>
-          </div>
+      <CardContent sx={{ height: "106px" }}>
+        <Link
+          to={videoId ? `/video/${videoId}` : demoVideoUrl}
+          style={{ textDecoration: "none", color: "inherit" }}
+        >
+          <Typography variant="subtitle1" fontWeight="bold">
+            {snippet?.title.slice(0, 60) || demoVideoTitle.slice(0, 60)}
+          </Typography>
         </Link>
 
         <Link
@@ -86,7 +96,7 @@ export default function VideoCard({
       </CardContent>
     </Card>
   );
-}
+};
 
 VideoCard.propTypes = {
   video: PropTypes.shape({
@@ -98,6 +108,9 @@ VideoCard.propTypes = {
         high: PropTypes.shape({
           url: PropTypes.string.isRequired,
         }),
+        default: PropTypes.shape({
+          url: PropTypes.string,
+        }),
       }),
       title: PropTypes.string.isRequired,
       channelId: PropTypes.string,
@@ -106,3 +119,5 @@ VideoCard.propTypes = {
   }).isRequired,
   drawerOpen: PropTypes.bool.isRequired,
 };
+
+export default VideoCard;

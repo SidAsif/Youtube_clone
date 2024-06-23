@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { useSelector, useDispatch } from "react-redux";
 import { clearUser } from "../slices/userSlice";
 import { setCategory } from "../slices/categorySlice";
+import { setDarkMode } from "../slices/darkModeSlice";
 import { styled } from "@mui/material/styles";
 import {
   Box,
@@ -21,8 +22,11 @@ import {
   ListItemIcon,
   ListItemText,
   Typography,
+  Switch,
 } from "@mui/material";
 import {
+  Brightness4,
+  Brightness7,
   MenuRounded,
   NotificationsNone,
   VideoCallOutlined,
@@ -36,8 +40,6 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { categories } from "../assets/material";
 import "../index.css";
-
-// ... styles
 
 const drawerWidth = 240;
 
@@ -82,18 +84,26 @@ const AppBar = styled(MuiAppBar, {
 
 const Drawer = styled(MuiDrawer, {
   shouldForwardProp: (prop) => prop !== "open",
-})(({ theme, open }) => ({
+})(({ theme, open, darkMode }) => ({
   width: drawerWidth,
   flexShrink: 0,
   whiteSpace: "nowrap",
   boxSizing: "border-box",
   ...(open && {
     ...openedMixin(theme),
-    "& .MuiDrawer-paper": openedMixin(theme),
+    "& .MuiDrawer-paper": {
+      ...openedMixin(theme),
+      backgroundColor: darkMode ? "#333" : "#fff",
+      color: darkMode ? "#fff" : "#000",
+    },
   }),
   ...(!open && {
     ...closedMixin(theme),
-    "& .MuiDrawer-paper": closedMixin(theme),
+    "& .MuiDrawer-paper": {
+      ...closedMixin(theme),
+      backgroundColor: darkMode ? "#333" : "#fff",
+      color: darkMode ? "#fff" : "#000",
+    },
   }),
 }));
 
@@ -103,13 +113,18 @@ export default function Navbar({ showDrawer, notifications = [] }) {
   const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 600);
   const selectedCategory = useSelector((state) => state.category);
   const user = useSelector((state) => state.user);
+  const isDarkMode = useSelector((state) => state.darkMode.value);
   const dispatch = useDispatch();
 
+  const handleToggleDarkMode = (event) => {
+    dispatch(setDarkMode(event.target.checked));
+  };
+
   const navstyle = {
-    backgroundColor: "#ffff",
+    backgroundColor: isDarkMode ? "#333" : "#fff",
   };
   const iconcolor = {
-    color: "Black",
+    color: isDarkMode ? "#fff" : "black",
   };
 
   const handleSignOut = async () => {
@@ -136,7 +151,13 @@ export default function Navbar({ showDrawer, notifications = [] }) {
 
   return (
     <>
-      <Box sx={{ display: "flex" }}>
+      <Box
+        sx={{
+          display: "flex",
+          bgcolor: isDarkMode ? "black" : "white",
+          color: isDarkMode ? "white" : "black",
+        }}
+      >
         <AppBar position="fixed" sx={{ ...navstyle, boxShadow: "none" }}>
           <Toolbar>
             {!isSmallScreen ? (
@@ -177,7 +198,10 @@ export default function Navbar({ showDrawer, notifications = [] }) {
                   className="iconss"
                 >
                   <IconButton>
-                    <VideoCallOutlined fontSize="large" />
+                    <VideoCallOutlined
+                      fontSize="large"
+                      sx={{ color: isDarkMode ? "#fff" : "black" }}
+                    />
                   </IconButton>
                   <IconButton>
                     <Badge
@@ -209,6 +233,7 @@ export default function Navbar({ showDrawer, notifications = [] }) {
                     src="/png-transparent-google-logo-youtube-youtuber-youtube-rewind-text-area-line-removebg-preview.png"
                     alt="logo"
                     height={45}
+                    // style={{ filter: isDarkMode ? "invert(1)" : "none" }}
                   />
                 </Link>
                 <SearchBar />
@@ -256,6 +281,13 @@ export default function Navbar({ showDrawer, notifications = [] }) {
             <MenuItem onClick={handleSignOut}>Logout</MenuItem>
             <MenuItem>Help</MenuItem>
             <MenuItem>Setting</MenuItem>
+            <MenuItem>
+              {isDarkMode ? <Brightness7 /> : <Brightness4 />}
+              <Typography variant="body1" sx={{ ml: 1 }}>
+                {isDarkMode ? "Light Mode" : "Dark Mode"}
+              </Typography>
+              <Switch checked={isDarkMode} onChange={handleToggleDarkMode} />
+            </MenuItem>
           </Menu>
         </AppBar>
         {showDrawer && (
@@ -263,8 +295,9 @@ export default function Navbar({ showDrawer, notifications = [] }) {
             className="drawer"
             variant="permanent"
             open={open}
+            darkMode={isDarkMode}
             sx={{
-              bgcolor: "black",
+              bgcolor: isDarkMode ? "#333" : "#fff",
               mt: 2,
             }}
           >
@@ -282,9 +315,10 @@ export default function Navbar({ showDrawer, notifications = [] }) {
                       minHeight: 48,
                       justifyContent: open ? "initial" : "center",
                       px: 2.5,
-                      color: "black",
+                      color: isDarkMode ? "#fff" : "inherit",
                       background:
-                        category.name === selectedCategory && "#D3D3D3",
+                        category.name === selectedCategory &&
+                        (isDarkMode ? "#555" : "#D3D3D3"),
                     }}
                   >
                     <ListItemIcon
@@ -293,7 +327,7 @@ export default function Navbar({ showDrawer, notifications = [] }) {
                         mr: open ? 3 : "auto",
                         justifyContent: "center",
                         marginRight: "15px",
-                        color: "black",
+                        color: isDarkMode ? "#fff" : "black",
                       }}
                     >
                       {category.icon}
@@ -311,7 +345,7 @@ export default function Navbar({ showDrawer, notifications = [] }) {
                 minHeight: 48,
                 justifyContent: open ? "initial" : "center",
                 px: 2.5,
-                color: "black",
+                color: isDarkMode ? "#fff" : "black",
               }}
             >
               <WatchLater
@@ -320,7 +354,7 @@ export default function Navbar({ showDrawer, notifications = [] }) {
                   mr: open ? 3 : "auto",
                   justifyContent: "center",
                   marginRight: "15px",
-                  color: "black",
+                  color: isDarkMode ? "#fff" : "black",
                 }}
               />{" "}
               <span style={{ fontSize: "14px", opacity: open ? 1 : 0 }}>
