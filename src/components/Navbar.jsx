@@ -149,9 +149,7 @@ export default function Navbar({ showDrawer, notifications = [] }) {
     const handleResize = () => {
       setIsSmallScreen(window.innerWidth < 600);
     };
-
     window.addEventListener("resize", handleResize);
-
     return () => {
       window.removeEventListener("resize", handleResize);
     };
@@ -198,6 +196,7 @@ export default function Navbar({ showDrawer, notifications = [] }) {
                 </Link>
                 <SearchBar />
                 <Box flexGrow={0.5} />
+                {/* Updated conditional options */}
                 <Box
                   sx={{
                     display: { xs: "none", md: "flex", gap: 3 },
@@ -205,22 +204,70 @@ export default function Navbar({ showDrawer, notifications = [] }) {
                   }}
                   className="iconss"
                 >
-                  <IconButton>
-                    <VideoCallOutlined
-                      fontSize="large"
-                      sx={{ color: isDarkMode ? "#fff" : "black" }}
-                    />
-                  </IconButton>
-                  <IconButton>
-                    <Badge
-                      color="error"
-                      badgeContent={notifications.length}
-                      sx={{ ...iconcolor }}
+                  {user ? (
+                    <>
+                      <IconButton>
+                        <VideoCallOutlined
+                          fontSize="large"
+                          sx={{ color: isDarkMode ? "#fff" : "black" }}
+                        />
+                      </IconButton>
+                      <IconButton>
+                        <Badge
+                          color="error"
+                          badgeContent={notifications.length}
+                          sx={{ ...iconcolor }}
+                        >
+                          <NotificationsNone />
+                        </Badge>
+                      </IconButton>
+                      <ToastContainer />
+                      <IconButton>
+                        <Avatar
+                          alt="profile-logo"
+                          src={
+                            user?.photoURL ||
+                            "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
+                          }
+                          sx={{ width: 32, height: 32 }}
+                          onClick={(e) => setMenuOpen(true)}
+                        />
+                      </IconButton>
+                    </>
+                  ) : (
+                    <Button
+                      variant="outlined"
+                      startIcon={
+                        <AccountCircleOutlined sx={{ color: "#1976d2" }} />
+                      }
+                      sx={{
+                        borderRadius: 10,
+                        borderColor: "#1976d2",
+                        color: "#1976d2",
+                        fontWeight: "bold",
+                        textTransform: "none",
+                        px: 2,
+                      }}
+                      component={Link}
+                      to="/login"
                     >
-                      <NotificationsNone />
-                    </Badge>
-                  </IconButton>
-                  <ToastContainer />
+                      Sign in
+                    </Button>
+                  )}
+                </Box>
+              </>
+            ) : (
+              <Box className="navbar-small">
+                <Link to="/">
+                  <img
+                    src="/png-transparent-google-logo-youtube-youtuber-youtube-rewind-text-area-line-removebg-preview.png"
+                    alt="logo"
+                    height={45}
+                  />
+                </Link>
+                <SearchBar />
+                {/* Updated for mobile - show button or avatar */}
+                {user ? (
                   <IconButton>
                     <Avatar
                       alt="profile-logo"
@@ -232,38 +279,35 @@ export default function Navbar({ showDrawer, notifications = [] }) {
                       onClick={(e) => setMenuOpen(true)}
                     />
                   </IconButton>
-                </Box>
-              </>
-            ) : (
-              <Box className="navbar-small">
-                <Link to="/">
-                  <img
-                    src="/png-transparent-google-logo-youtube-youtuber-youtube-rewind-text-area-line-removebg-preview.png"
-                    alt="logo"
-                    height={45}
-                    // style={{ filter: isDarkMode ? "invert(1)" : "none" }}
-                  />
-                </Link>
-                <SearchBar />
-                <IconButton>
-                  <Avatar
-                    alt="profile-logo"
-                    src={
-                      user?.photoURL ||
-                      "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
+                ) : (
+                  <Button
+                    variant="outlined"
+                    startIcon={
+                      <AccountCircleOutlined sx={{ color: "#1976d2" }} />
                     }
-                    sx={{ width: 32, height: 32 }}
-                    onClick={(e) => setMenuOpen(true)}
-                  />
-                </IconButton>
+                    sx={{
+                      borderRadius: 10,
+                      borderColor: "#1976d2",
+                      color: "#1976d2",
+                      fontWeight: "bold",
+                      textTransform: "none",
+                      px: 2,
+                    }}
+                    component={Link}
+                    to="/login"
+                  >
+                    Sign in
+                  </Button>
+                )}
               </Box>
             )}
           </Toolbar>
+          {/* Menu shown on avatar click */}
           <Menu
             id="demo-positioned-menu"
             aria-labelledby="demo-positioned-button"
             open={menuOpen}
-            onClose={(e) => setMenuOpen(false)}
+            onClose={() => setMenuOpen(false)}
             anchorOrigin={{
               vertical: "top",
               horizontal: "right",
@@ -283,7 +327,7 @@ export default function Navbar({ showDrawer, notifications = [] }) {
                   }
                   sx={{ width: 32, height: 32, marginRight: 2 }}
                 />
-                <Typography variant="body1">{user.displayName}</Typography>
+                <Typography variant="body1">{user?.displayName}</Typography>
               </Box>
             </MenuItem>
             <MenuItem onClick={handleSignOut}>Logout</MenuItem>

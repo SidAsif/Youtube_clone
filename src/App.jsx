@@ -15,6 +15,7 @@ function App() {
   const [openDrawer, setOpenDrawer] = useState(true);
   const [user, setUser] = useState(null);
   const [notifications, setNotifications] = useState([]);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -26,10 +27,6 @@ function App() {
 
     return () => unsubscribe();
   }, []);
-
-  if (!user) {
-    return <SignInCard />;
-  }
 
   return (
     <BrowserRouter>
@@ -48,6 +45,7 @@ function App() {
           />
           <Route path="/channel/:id" element={<ChannelDetail />} />
           <Route path="/search/:searchTerm" element={<SearchFeed />} />
+          <Route path="/signin" element={<SignInCard />} />
         </Routes>
       </Box>
     </BrowserRouter>
